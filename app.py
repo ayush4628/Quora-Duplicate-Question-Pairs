@@ -1,6 +1,5 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
 import re
 import joblib
 import nltk
@@ -14,7 +13,7 @@ from datetime import datetime
 
 
 # =========================================================
-# Page Configuration
+# PAGE CONFIG
 # =========================================================
 
 st.set_page_config(
@@ -25,83 +24,130 @@ st.set_page_config(
 
 
 # =========================================================
-# Custom CSS
+# CUSTOM CSS
 # =========================================================
 
 st.html("""
 <style>
 
     /* =====================================================
-       Main Container
-    ===================================================== */
+       MAIN CONTAINER
+       ===================================================== */
 
     .block-container {
-        max-width: 800px;
-        padding-top: 1rem;
-        padding-bottom: 0.3rem;
+        max-width: 800px !important;
+
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.2rem !important;
     }
 
 
     /* =====================================================
-       Main Header
-    ===================================================== */
+       STREAMLIT TOP HEADER
+       ===================================================== */
 
-    .custom-title {
-        text-align: center;
-        font-size: 2.15rem;
-        font-weight: 750;
-        margin-top: 0.2rem;
-        margin-bottom: 0.2rem;
-        line-height: 1.2;
+    div[data-testid="stHeader"] {
+        background: transparent !important;
     }
 
+
+    /* =====================================================
+       MAIN TITLE
+       ===================================================== */
+
+    div[data-testid="stHeading"] h1,
+    div[data-testid="stHeading"] h2,
+    div[data-testid="stHeading"] h3 {
+
+        text-align: center !important;
+
+        font-size: 2.05rem !important;
+
+        font-weight: 750 !important;
+
+        line-height: 1.25 !important;
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        overflow: visible !important;
+    }
+
+
+    /* =====================================================
+       SUBTITLE
+       ===================================================== */
 
     .custom-subtitle {
+
         text-align: center;
+
         font-size: 0.82rem;
+
         opacity: 0.70;
-        margin-bottom: 1rem;
+
+        margin-top: 0.25rem;
+
+        margin-bottom: 0.85rem;
+
+        line-height: 1.4;
     }
 
 
     /* =====================================================
-       Information Card
-    ===================================================== */
+       HOW IT WORKS
+       ===================================================== */
 
     .info-card {
-        padding: 0.7rem 1rem;
+
+        padding: 0.65rem 1rem;
+
         border: 1px solid rgba(128, 128, 128, 0.25);
+
         border-radius: 10px;
+
         background: rgba(128, 128, 128, 0.06);
+
         text-align: center;
-        margin-bottom: 0.9rem;
-        line-height: 1.4;
+
+        margin-bottom: 0.8rem;
+
+        line-height: 1.35;
+
         font-size: 0.82rem;
     }
 
 
     .info-title {
+
         font-size: 0.9rem;
+
         font-weight: 700;
-        margin-bottom: 0.2rem;
+
+        margin-bottom: 0.15rem;
     }
 
 
     /* =====================================================
-       Question Labels
-    ===================================================== */
+       QUESTION LABELS
+       ===================================================== */
 
     .question-label {
+
         font-size: 0.9rem;
+
         font-weight: 650;
-        margin-top: 0.25rem;
-        margin-bottom: 0.2rem;
+
+        margin-top: 0.2rem;
+
+        margin-bottom: 0.15rem;
     }
 
 
     /* =====================================================
-       Text Areas
-    ===================================================== */
+       TEXT AREAS
+       ===================================================== */
 
     textarea {
         border-radius: 8px !important;
@@ -109,65 +155,92 @@ st.html("""
 
 
     /* =====================================================
-       Result Card
-    ===================================================== */
+       RESULT CARD
+       ===================================================== */
 
     .result-card {
-        padding: 0.9rem;
+
+        padding: 0.85rem;
+
         border-radius: 10px;
+
         border: 1px solid rgba(128, 128, 128, 0.25);
+
         background: rgba(128, 128, 128, 0.05);
+
         text-align: center;
-        margin-top: 0.5rem;
+
+        margin-top: 0.4rem;
     }
 
 
     .result-title {
+
         font-size: 1.15rem;
+
         font-weight: 700;
     }
 
 
     .result-confidence {
+
         font-size: 0.85rem;
-        margin-top: 0.25rem;
+
+        margin-top: 0.2rem;
     }
 
 
     /* =====================================================
-       Footer
-    ===================================================== */
+       FOOTER
+       ===================================================== */
 
     .custom-footer {
-        margin-top: 1.2rem;
-        padding-top: 0.4rem;
-        padding-bottom: 0.2rem;
+
+        margin-top: 0.9rem;
+
+        padding-top: 0.25rem;
+
+        padding-bottom: 0.05rem;
+
         text-align: center;
+
         opacity: 0.65;
+
         font-size: 0.75rem;
+
         line-height: 1.3;
     }
 
 
     .footer-line {
+
         display: flex;
+
         align-items: center;
+
         justify-content: center;
-        margin-bottom: 0.35rem;
+
+        margin-bottom: 0.3rem;
     }
 
 
     .footer-line::before,
     .footer-line::after {
+
         content: "";
+
         height: 1px;
+
         width: 100px;
+
         background: rgba(128, 128, 128, 0.5);
     }
 
 
     .footer-heart {
+
         margin: 0 10px;
+
         font-size: 0.8rem;
     }
 
@@ -176,15 +249,11 @@ st.html("""
 
 
 # =========================================================
-# Load Required Files
+# LOAD MODELS
 # =========================================================
 
 @st.cache_resource
 def load_models():
-
-    # -----------------------------------------------------
-    # Load XGBoost Model
-    # -----------------------------------------------------
 
     model = XGBClassifier()
 
@@ -192,24 +261,13 @@ def load_models():
         "models/duplicate_question_xgb.json"
     )
 
-
-    # -----------------------------------------------------
-    # Load CountVectorizer
-    # -----------------------------------------------------
-
     cv = joblib.load(
         "models/count_vectorizer.pkl"
     )
 
-
-    # -----------------------------------------------------
-    # Load SVD
-    # -----------------------------------------------------
-
     svd = joblib.load(
         "models/svd.pkl"
     )
-
 
     return model, cv, svd
 
@@ -218,7 +276,7 @@ model, cv, svd = load_models()
 
 
 # =========================================================
-# NLTK Stopwords
+# NLTK STOPWORDS
 # =========================================================
 
 nltk.download(
@@ -234,7 +292,7 @@ STOP_WORDS = set(
 
 
 # =========================================================
-# Contractions
+# CONTRACTIONS
 # =========================================================
 
 contractions = {
@@ -391,74 +449,42 @@ contractions = {
 
 
 # =========================================================
-# Preprocessing
+# PREPROCESSING
 # =========================================================
 
 def preprocess(q):
 
     q = str(q).lower().strip()
 
+    q = q.replace("%", " percent")
+    q = q.replace("$", " dollar ")
+    q = q.replace("₹", " rupee ")
+    q = q.replace("€", " euro ")
+    q = q.replace("@", " at ")
 
-    # -----------------------------------------------------
-    # Special Characters
-    # -----------------------------------------------------
+    q = q.replace("[math]", "")
 
-    q = q.replace('%', ' percent')
-    q = q.replace('$', ' dollar ')
-    q = q.replace('₹', ' rupee ')
-    q = q.replace('€', ' euro ')
-    q = q.replace('@', ' at ')
-
-
-    # -----------------------------------------------------
-    # Math Tag
-    # -----------------------------------------------------
-
-    q = q.replace('[math]', '')
-
-
-    # -----------------------------------------------------
-    # Number Replacements
-    # -----------------------------------------------------
-
-    q = q.replace(
-        ',000,000,000 ',
-        'b '
-    )
-
-    q = q.replace(
-        ',000,000 ',
-        'm '
-    )
-
-    q = q.replace(
-        ',000 ',
-        'k '
-    )
-
+    q = q.replace(",000,000,000 ", "b ")
+    q = q.replace(",000,000 ", "m ")
+    q = q.replace(",000 ", "k ")
 
     q = re.sub(
-        r'([0-9]+)000000000',
-        r'\1b',
+        r"([0-9]+)000000000",
+        r"\1b",
         q
     )
 
     q = re.sub(
-        r'([0-9]+)000000',
-        r'\1m',
+        r"([0-9]+)000000",
+        r"\1m",
         q
     )
 
     q = re.sub(
-        r'([0-9]+)000',
-        r'\1k',
+        r"([0-9]+)000",
+        r"\1k",
         q
     )
-
-
-    # -----------------------------------------------------
-    # Decontract
-    # -----------------------------------------------------
 
     q_decontracted = []
 
@@ -469,8 +495,9 @@ def preprocess(q):
 
         q_decontracted.append(word)
 
-    q = ' '.join(q_decontracted)
-
+    q = " ".join(
+        q_decontracted
+    )
 
     q = q.replace(
         "'ve",
@@ -492,37 +519,26 @@ def preprocess(q):
         " will"
     )
 
-
-    # -----------------------------------------------------
-    # Remove HTML
-    # -----------------------------------------------------
-
     q = BeautifulSoup(
         q,
         "html.parser"
     ).get_text()
 
-
-    # -----------------------------------------------------
-    # Remove Punctuation
-    # -----------------------------------------------------
-
     pattern = re.compile(
-        r'\W'
+        r"\W"
     )
 
     q = re.sub(
         pattern,
-        ' ',
+        " ",
         q
     ).strip()
-
 
     return q
 
 
 # =========================================================
-# Token Features
+# TOKEN FEATURES
 # =========================================================
 
 def fetch_token_features(q1, q2):
@@ -534,19 +550,12 @@ def fetch_token_features(q1, q2):
     q1_tokens = q1.split()
     q2_tokens = q2.split()
 
-
     if (
         len(q1_tokens) == 0
         or
         len(q2_tokens) == 0
     ):
-
         return token_features
-
-
-    # -----------------------------------------------------
-    # Non-stopwords
-    # -----------------------------------------------------
 
     q1_words = set(
         word
@@ -560,11 +569,6 @@ def fetch_token_features(q1, q2):
         if word not in STOP_WORDS
     )
 
-
-    # -----------------------------------------------------
-    # Stopwords
-    # -----------------------------------------------------
-
     q1_stops = set(
         word
         for word in q1_tokens
@@ -577,21 +581,11 @@ def fetch_token_features(q1, q2):
         if word in STOP_WORDS
     )
 
-
-    # -----------------------------------------------------
-    # Common Words
-    # -----------------------------------------------------
-
     common_word_count = len(
         q1_words.intersection(
             q2_words
         )
     )
-
-
-    # -----------------------------------------------------
-    # Common Stopwords
-    # -----------------------------------------------------
 
     common_stop_count = len(
         q1_stops.intersection(
@@ -599,21 +593,11 @@ def fetch_token_features(q1, q2):
         )
     )
 
-
-    # -----------------------------------------------------
-    # Common Tokens
-    # -----------------------------------------------------
-
     common_token_count = len(
         set(q1_tokens).intersection(
             set(q2_tokens)
         )
     )
-
-
-    # -----------------------------------------------------
-    # Common Non-stopwords
-    # -----------------------------------------------------
 
     token_features[0] = (
         common_word_count /
@@ -622,11 +606,9 @@ def fetch_token_features(q1, q2):
                 len(q1_words),
                 len(q2_words)
             )
-            +
-            SAFE_DIV
+            + SAFE_DIV
         )
     )
-
 
     token_features[1] = (
         common_word_count /
@@ -635,15 +617,9 @@ def fetch_token_features(q1, q2):
                 len(q1_words),
                 len(q2_words)
             )
-            +
-            SAFE_DIV
+            + SAFE_DIV
         )
     )
-
-
-    # -----------------------------------------------------
-    # Common Stopwords
-    # -----------------------------------------------------
 
     token_features[2] = (
         common_stop_count /
@@ -652,11 +628,9 @@ def fetch_token_features(q1, q2):
                 len(q1_stops),
                 len(q2_stops)
             )
-            +
-            SAFE_DIV
+            + SAFE_DIV
         )
     )
-
 
     token_features[3] = (
         common_stop_count /
@@ -665,15 +639,9 @@ def fetch_token_features(q1, q2):
                 len(q1_stops),
                 len(q2_stops)
             )
-            +
-            SAFE_DIV
+            + SAFE_DIV
         )
     )
-
-
-    # -----------------------------------------------------
-    # Common Tokens
-    # -----------------------------------------------------
 
     token_features[4] = (
         common_token_count /
@@ -682,11 +650,9 @@ def fetch_token_features(q1, q2):
                 len(q1_tokens),
                 len(q2_tokens)
             )
-            +
-            SAFE_DIV
+            + SAFE_DIV
         )
     )
-
 
     token_features[5] = (
         common_token_count /
@@ -695,37 +661,25 @@ def fetch_token_features(q1, q2):
                 len(q1_tokens),
                 len(q2_tokens)
             )
-            +
-            SAFE_DIV
+            + SAFE_DIV
         )
     )
-
-
-    # -----------------------------------------------------
-    # Last Word
-    # -----------------------------------------------------
 
     token_features[6] = int(
         q1_tokens[-1] ==
         q2_tokens[-1]
     )
 
-
-    # -----------------------------------------------------
-    # First Word
-    # -----------------------------------------------------
-
     token_features[7] = int(
         q1_tokens[0] ==
         q2_tokens[0]
     )
 
-
     return token_features
 
 
 # =========================================================
-# Length Features
+# LENGTH FEATURES
 # =========================================================
 
 def fetch_length_features(q1, q2):
@@ -735,39 +689,22 @@ def fetch_length_features(q1, q2):
     q1_tokens = q1.split()
     q2_tokens = q2.split()
 
-
     if (
         len(q1_tokens) == 0
         or
         len(q2_tokens) == 0
     ):
-
         return length_features
-
-
-    # -----------------------------------------------------
-    # Absolute Length Difference
-    # -----------------------------------------------------
 
     length_features[0] = abs(
         len(q1_tokens) -
         len(q2_tokens)
     )
 
-
-    # -----------------------------------------------------
-    # Mean Length
-    # -----------------------------------------------------
-
     length_features[1] = (
         len(q1_tokens) +
         len(q2_tokens)
     ) / 2
-
-
-    # -----------------------------------------------------
-    # Longest Common Substring
-    # -----------------------------------------------------
 
     strs = list(
         distance.lcsubstrings(
@@ -775,7 +712,6 @@ def fetch_length_features(q1, q2):
             q2
         )
     )
-
 
     if len(strs) > 0:
 
@@ -786,68 +722,52 @@ def fetch_length_features(q1, q2):
                     len(q1),
                     len(q2)
                 )
-                +
-                1
+                + 1
             )
         )
-
-    else:
-
-        length_features[2] = 0.0
-
 
     return length_features
 
 
 # =========================================================
-# Fuzzy Features
+# FUZZY FEATURES
 # =========================================================
 
 def fetch_fuzzy_features(q1, q2):
 
-    fuzzy_features = [0.0] * 4
+    return [
 
+        fuzz.QRatio(
+            q1,
+            q2
+        ),
 
-    fuzzy_features[0] = fuzz.QRatio(
-        q1,
-        q2
-    )
+        fuzz.partial_ratio(
+            q1,
+            q2
+        ),
 
+        fuzz.token_sort_ratio(
+            q1,
+            q2
+        ),
 
-    fuzzy_features[1] = fuzz.partial_ratio(
-        q1,
-        q2
-    )
+        fuzz.token_set_ratio(
+            q1,
+            q2
+        )
 
-
-    fuzzy_features[2] = fuzz.token_sort_ratio(
-        q1,
-        q2
-    )
-
-
-    fuzzy_features[3] = fuzz.token_set_ratio(
-        q1,
-        q2
-    )
-
-
-    return fuzzy_features
+    ]
 
 
 # =========================================================
-# Create 22 Handcrafted Features
+# HANDCRAFTED FEATURES
 # =========================================================
 
 def create_handcrafted_features(q1, q2):
 
-    # -----------------------------------------------------
-    # Basic Features
-    # -----------------------------------------------------
-
     q1_len = len(q1)
     q2_len = len(q2)
-
 
     q1_num_words = len(
         q1.split(" ")
@@ -856,11 +776,6 @@ def create_handcrafted_features(q1, q2):
     q2_num_words = len(
         q2.split(" ")
     )
-
-
-    # -----------------------------------------------------
-    # Common Words
-    # -----------------------------------------------------
 
     w1 = set(
         map(
@@ -878,17 +793,14 @@ def create_handcrafted_features(q1, q2):
         )
     )
 
-
     word_common = len(
         w1 & w2
     )
-
 
     word_total = (
         len(w1) +
         len(w2)
     )
-
 
     word_share = (
         round(
@@ -900,44 +812,22 @@ def create_handcrafted_features(q1, q2):
         else 0
     )
 
-
-    # -----------------------------------------------------
-    # Token Features
-    # -----------------------------------------------------
-
     token_features = fetch_token_features(
         q1,
         q2
     )
-
-
-    # -----------------------------------------------------
-    # Length Features
-    # -----------------------------------------------------
 
     length_features = fetch_length_features(
         q1,
         q2
     )
 
-
-    # -----------------------------------------------------
-    # Fuzzy Features
-    # -----------------------------------------------------
-
     fuzzy_features = fetch_fuzzy_features(
         q1,
         q2
     )
 
-
-    # -----------------------------------------------------
-    # EXACT SAME COLUMN ORDER AS TRAINING
-    # -----------------------------------------------------
-
     features = [
-
-        # Basic features
 
         q1_len,
         q2_len,
@@ -949,9 +839,6 @@ def create_handcrafted_features(q1, q2):
         word_total,
         word_share,
 
-
-        # Token features
-
         token_features[0],
         token_features[1],
         token_features[2],
@@ -961,15 +848,9 @@ def create_handcrafted_features(q1, q2):
         token_features[6],
         token_features[7],
 
-
-        # Length features
-
         length_features[0],
         length_features[1],
         length_features[2],
-
-
-        # Fuzzy features
 
         fuzzy_features[0],
         fuzzy_features[1],
@@ -977,7 +858,6 @@ def create_handcrafted_features(q1, q2):
         fuzzy_features[3]
 
     ]
-
 
     return np.array(
         features,
@@ -989,17 +869,13 @@ def create_handcrafted_features(q1, q2):
 
 
 # =========================================================
-# Generate Final 122 Features
+# FINAL 122 FEATURES
 # =========================================================
 
 def create_final_features(
     question1,
     question2
 ):
-
-    # -----------------------------------------------------
-    # Preprocess Questions
-    # -----------------------------------------------------
 
     q1 = preprocess(
         question1
@@ -1009,44 +885,23 @@ def create_final_features(
         question2
     )
 
-
-    # -----------------------------------------------------
-    # 22 Handcrafted Features
-    # -----------------------------------------------------
-
     handcrafted = create_handcrafted_features(
         q1,
         q2
     )
-
-
-    # -----------------------------------------------------
-    # Bag of Words
-    # -----------------------------------------------------
 
     questions = [
         q1,
         q2
     ]
 
-
     question_matrix = cv.transform(
         questions
     )
 
-
-    # -----------------------------------------------------
-    # Q1 and Q2 Separately
-    # -----------------------------------------------------
-
     q1_arr = question_matrix[0]
 
     q2_arr = question_matrix[1]
-
-
-    # -----------------------------------------------------
-    # Combine Q1 + Q2
-    # -----------------------------------------------------
 
     X_bow = hstack(
         [
@@ -1056,19 +911,9 @@ def create_final_features(
         format="csr"
     )
 
-
-    # -----------------------------------------------------
-    # SVD → 100 Features
-    # -----------------------------------------------------
-
     X_bow_reduced = svd.transform(
         X_bow
     )
-
-
-    # -----------------------------------------------------
-    # 22 + 100 = 122 Features
-    # -----------------------------------------------------
 
     final_features = np.hstack(
         [
@@ -1077,35 +922,55 @@ def create_final_features(
         ]
     )
 
-
     return final_features.astype(
         np.float32
     )
 
 
 # =========================================================
-# STREAMLIT UI
+# ===================== UI START ==========================
 # =========================================================
 
 
 # =========================================================
-# Main Header
+# FORCE HEADER DOWN
+# =========================================================
+#
+# IMPORTANT:
+# We are NOT depending on padding-top here.
+# This physical spacer pushes the complete header down.
+#
+
+st.html("""
+<div style="height: 65px;"></div>
+""")
+
+
+# =========================================================
+# MAIN HEADER
+# =========================================================
+
+st.header(
+    "🔍 Duplicate Question Detector"
+)
+
+
+# =========================================================
+# SUBTITLE
 # =========================================================
 
 st.html("""
-<div class="custom-title">
-    🔍 Duplicate Question Detector
-</div>
-
 <div class="custom-subtitle">
+
     AI-powered NLP system to determine whether two questions
     have the same meaning.
+
 </div>
 """)
 
 
 # =========================================================
-# Information Card
+# HOW IT WORKS
 # =========================================================
 
 st.html("""
@@ -1124,7 +989,7 @@ st.html("""
 
 
 # =========================================================
-# Question 1
+# QUESTION 1
 # =========================================================
 
 st.html("""
@@ -1136,14 +1001,19 @@ st.html("""
 
 question1 = st.text_area(
     "Question 1",
-    placeholder="e.g. What is the best way to learn Python?",
+
+    placeholder=(
+        "e.g. What is the best way to learn Python?"
+    ),
+
     height=85,
+
     label_visibility="collapsed"
 )
 
 
 # =========================================================
-# Question 2
+# QUESTION 2
 # =========================================================
 
 st.html("""
@@ -1155,14 +1025,19 @@ st.html("""
 
 question2 = st.text_area(
     "Question 2",
-    placeholder="e.g. How can I learn Python effectively?",
+
+    placeholder=(
+        "e.g. How can I learn Python effectively?"
+    ),
+
     height=85,
+
     label_visibility="collapsed"
 )
 
 
 # =========================================================
-# Prediction Button
+# BUTTON
 # =========================================================
 
 st.write("")
@@ -1170,12 +1045,14 @@ st.write("")
 
 if st.button(
     "🔎  Check for Duplicate",
+
     type="primary",
+
     use_container_width=True
 ):
 
     # -----------------------------------------------------
-    # Validate Input
+    # INPUT VALIDATION
     # -----------------------------------------------------
 
     if (
@@ -1192,48 +1069,35 @@ if st.button(
     else:
 
         # -------------------------------------------------
-        # Prediction
+        # PREDICTION
         # -------------------------------------------------
 
         with st.spinner(
             "🤖 Analyzing questions..."
         ):
 
-            # Create 122 features
-
             X_input = create_final_features(
                 question1,
                 question2
             )
 
-
-            # Model Prediction
-
             prediction = model.predict(
                 X_input
             )[0]
-
-
-            # Prediction Probability
 
             probability = model.predict_proba(
                 X_input
             )[0]
 
-
             duplicate_probability = probability[1]
 
 
         # =================================================
-        # Result
+        # RESULT
         # =================================================
 
         st.divider()
 
-
-        # -------------------------------------------------
-        # Duplicate
-        # -------------------------------------------------
 
         if prediction == 1:
 
@@ -1251,17 +1115,17 @@ if st.button(
                 </div>
 
                 <div class="result-confidence">
+
                     Model Confidence:
-                    <strong>{confidence:.2f}%</strong>
+                    <strong>
+                        {confidence:.2f}%
+                    </strong>
+
                 </div>
 
             </div>
             """)
 
-
-        # -------------------------------------------------
-        # Not Duplicate
-        # -------------------------------------------------
 
         else:
 
@@ -1279,8 +1143,12 @@ if st.button(
                 </div>
 
                 <div class="result-confidence">
+
                     Model Confidence:
-                    <strong>{confidence:.2f}%</strong>
+                    <strong>
+                        {confidence:.2f}%
+                    </strong>
+
                 </div>
 
             </div>
@@ -1288,7 +1156,7 @@ if st.button(
 
 
 # =========================================================
-# Footer
+# FOOTER
 # =========================================================
 
 current_year = datetime.now().year
@@ -1298,13 +1166,21 @@ st.html(f"""
 <div class="custom-footer">
 
     <div class="footer-line">
-        <span class="footer-heart">❤️</span>
+
+        <span class="footer-heart">
+            ❤️
+        </span>
+
     </div>
 
     Built with ⚡ <strong>Streamlit</strong>
+
     &nbsp; • &nbsp;
+
     Made with ❤️ by <strong>Ayush</strong>
+
     &nbsp; • &nbsp;
+
     © {current_year}
 
 </div>
