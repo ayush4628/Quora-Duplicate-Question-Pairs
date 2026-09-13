@@ -1,0 +1,12 @@
+streamlit
+numpy
+pandas
+scikit-learn
+xgboost
+joblib
+nltk
+beautifulsoup4
+fuzzywuzzy
+python-Levenshtein
+distance
+scipy
